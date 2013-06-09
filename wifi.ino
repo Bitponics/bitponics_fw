@@ -17,7 +17,6 @@
 WiFly wifi;
 
 const char mySSID[] = "BITPONICS";
-//const char site[] = "dev.bitponics.com";
 const char site[] = "www.bitponics.com";
 
 //Key Chars must have one extra space for `
@@ -82,7 +81,11 @@ void wifiSetup(unsigned int BAUD) {
   if(WIFI_STATE == WIFI_UNSET) wifiAp(); 
   else {
     loadServerKeys();
-    if(!associateWifi()) wifiAp();
+    while(!associateWifi()){
+     Serial.println("-> Association attempt failed"); 
+    }
+    
+    //if(!associateWifi()) wifiAp();
   }
   
 }
@@ -111,4 +114,6 @@ void wifiLoop(){
   }
 }
 
-
+void SerialEvent(){
+  
+}

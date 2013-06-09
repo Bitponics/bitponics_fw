@@ -13,7 +13,7 @@ void loadServerKeys(){
 bool associateWifi(){
 
   if (!wifi.isAssociated()){
-    wifi.enableDHCP();
+    //wifi.enableDHCP();
 
 //    Serial.print(F("DeviceID: "));
 //    Serial.println(wifi.getDeviceID(buf, sizeof(buf)));
@@ -36,7 +36,7 @@ bool associateWifi(){
 
 //********************************************************************************
 void scanNetworks(){
-  Serial.println(F("-> --Scan Mode--"));
+  Serial.println(F("-> Scan Mode"));
   Networks = wifi.getScanNew(data, sizeof(data), true);
 
   //if String networks has only [] find networks
@@ -254,7 +254,7 @@ char* makeJson(char* b, int s, boolean calib){
     Serial.println();
     
 //    logMsg(SENSOR, "light");
-    json += "{\"sensors\":{\"lux\":";
+    json += "{\"sensors\":{\"light\":";
     json += tempChar(getLight(),opt);
 
 //    logMsg(SENSOR, "air temp");
