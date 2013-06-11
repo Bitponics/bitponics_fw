@@ -289,6 +289,12 @@ char* makeJson(char* b, int s, boolean calib){
     String ph = opt;
     json+=",\"ph\":";
     json+=ph;
+    
+    //    logMsg(SENSOR, "pH");
+    tempChar(getWaterLevel(),opt);
+    String wl = opt;
+    json+=",\"wl\":";
+    json+=wl;
   }
 
   json+="}}";

@@ -47,9 +47,12 @@ void setup() {
 
 void loop(){
 
+  checkBtn();
+  
   wifiLoop();
   terminal();
   if(millis()>reset_time) resetBoard();
+
 }
 
 void setup_sensors(unsigned int DATABAUD){
@@ -73,7 +76,7 @@ void terminal(){
 
 }
 
-void reset(){
+void resetBoard(){
   //wdt_enable(WDTO_8S); 
   Serial.println("-> Board timed reset");
   wdt_enable(WDTO_30MS); 

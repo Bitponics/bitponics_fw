@@ -14,11 +14,13 @@ void wifiAssocRequestHandler(){
         wifi.getsTerm(data, sizeof(data),'\n'); 
         Serial.println(data);
       }
+      else Serial.println("No content type");
       if (wifi.match(F("Set-Cookie"))){ 
         Serial.print(F("Set-Cookie: "));
         wifi.getsTerm(data, sizeof(data),'\n'); 
         Serial.print(data);
       }
+      else Serial.println("No cookie");
       if (wifi.match(F("X-Bpn-Resourcename:"))){
         Serial.print(F("X-Bpn-Resourcename: ")); 
         wifi.gets(data, sizeof(data)); 
@@ -70,7 +72,10 @@ void wifiAssocRequestHandler(){
 //          else Serial.println(F("Error: no end byte"));
 
         }
+        else Serial.println("No status message!");
       }
+      else Serial.println("No resources!");
+      
     } 
     else if(strncmp_P(buf,PSTR("HTTP/1.1 401 Unauthorized"),23)==0 ){
       //action item for unathorized server requests?

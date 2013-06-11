@@ -14,6 +14,8 @@
 #include "sha256.h"
 #include "customDataTypes.h"
 
+boolean lastBtnState = true;
+
 WiFly wifi;
 
 const char mySSID[] = "BITPONICS";
@@ -62,7 +64,7 @@ void wifiSetup(unsigned int BAUD) {
   Serial.print(F("SSID:        "));
   String ssid = wifi.getSSID(buf, sizeof(buf));
   Serial.println(ssid);
-  if(ssid == "BITPONICS"){
+  if(ssid == "BITPONICS" || ssid == "roving1"){
     Serial.println("-> Setting AP Mode");
     wifi.setDeviceID("ApServer");
   }
@@ -75,26 +77,50 @@ void wifiSetup(unsigned int BAUD) {
   if(d.indexOf("ApServer")>0) WIFI_STATE = WIFI_UNSET;
   if(d.indexOf("WPAClient")>0) WIFI_STATE = WIFI_WPA;
   if(d.indexOf("WEPClient")>0) WIFI_STATE = WIFI_WEP;
-  
+
   wifi.setProtocol(WIFLY_PROTOCOL_TCP); // setup TCP protocol
-  
+
   if(WIFI_STATE == WIFI_UNSET) wifiAp(); 
   else {
     loadServerKeys();
     while(!associateWifi()){
-     Serial.println("-> Association attempt failed"); 
+      Serial.println("-> Association attempt failed"); 
     }
-    
+
     //if(!associateWifi()) wifiAp();
   }
+
+}
+
+
+/// Reset network
+void checkBtn(){
+  boolean btnState = digitalRead(BUTTON);
+  long btnStartTime = millis();
+  long btnTime = 0;
+
+  while(!btnState){
+    btnTime = millis() - btnStartTime;
+    btnState = digitalRead(BUTTON);
+  }
+
+  if(btnTime > 3000){
+    // change network name and reset
+    Serial.println("button hard reset"); 
+    Serial.println("-> Setting AP Mode");
+    wifi.setDeviceID("ApServer");
+    wifi.setSSID("Bitponics");
+    wifi.save();
+  }
   
+
 }
 
 //********************************************************************************
 
 void wifiLoop(){
   //Serial.println("in loop");
- // delay(100);
+  // delay(100);
   if(WIFI_STATE == WIFI_UNSET){
     if (wifi.available() > 0) {
       wifiApRequestHandler();
@@ -115,5 +141,7 @@ void wifiLoop(){
 }
 
 void SerialEvent(){
-  
+
 }
+
+

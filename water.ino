@@ -1,3 +1,9 @@
+#define SERIESRESISTOR 2000    
+#define SENSORPIN A6 
+float height;
+float range = 220;
+float minVal = 190;
+float maxHeight = 21;
 
 
 //-----------------------------------------------------------------------------------------
@@ -70,5 +76,13 @@ void print_ec(EC &_t){
 }
 //-----------------------------------------------------------------------------------------
 
+float getWaterLevel(){
+ 
+  int reading = analogRead(SENSORPIN);
+  height = maxHeight-(reading-minVal)/range*maxHeight;
+  //Serial.println(height);
+
+  return height;
+}
 
 
