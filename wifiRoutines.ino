@@ -15,10 +15,10 @@ bool associateWifi(){
   if (!wifi.isAssociated()){
     //wifi.enableDHCP();
 
-//    Serial.print(F("DeviceID: "));
-//    Serial.println(wifi.getDeviceID(buf, sizeof(buf)));
-//    Serial.print(F("SSID: "));
-//    Serial.println(wifi.getSSID(buf, sizeof(buf)));
+    //    Serial.print(F("DeviceID: "));
+    //    Serial.println(wifi.getDeviceID(buf, sizeof(buf)));
+    //    Serial.print(F("SSID: "));
+    //    Serial.println(wifi.getSSID(buf, sizeof(buf)));
 
     if (wifi.join()) {
       Serial.println("-> Joined wifi network");
@@ -106,11 +106,11 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
   char* json;
 
   //if(_bGetData)
-  
+
   if(calibMode== "") json = makeJson(data, sizeof(data), false ); //this is where we will make all of our data
   else json = makeJson(data, sizeof(data), true );
 
-    sprintf(buf,"%s /api/devices/%s/%s HTTP/1.1",_type,MAC,_route);  //format header route
+  sprintf(buf,"%s /api/devices/%s/%s HTTP/1.1",_type,MAC,_route);  //format header route
   String path = buf; 
   Serial.println(path); 
 
@@ -252,19 +252,19 @@ char* makeJson(char* b, int s, boolean calib){
   else{
     Serial.println("Taking Readings and Making JSON");
     Serial.println();
-    
-//    logMsg(SENSOR, "light");
-    json += "{\"sensors\":{\"light\":";
+
+    Serial.println("-lux");
+    json += "{\"sensors\":{\"lux\":";
     json += tempChar(getLight(),opt);
 
-//    logMsg(SENSOR, "air temp");
+    Serial.println("-air temp");
     json += ",\"air\":";
     tempChar(getAirTemp(), opt);
     String air = opt;
     json+=air;
     //Serial.print("air temp: ");Serial.println(air);
 
-//    logMsg(SENSOR, "water temp");
+    Serial.println("-water temp");
     json+= ",\"water\":";
     float waterTemp = getWaterTemp();
     tempChar(waterTemp,opt);
@@ -272,25 +272,25 @@ char* makeJson(char* b, int s, boolean calib){
     json+=water;
     //Serial.print("water temp: ");Serial.println(water);
 
-//    logMsg(SENSOR, "humidity");
+    Serial.println("-humidity");
     json+=",\"hum\":";
     tempChar(getHumidity(),opt);
     String hum = opt;
     json+=hum;
     //Serial.print("humidity: ");Serial.println(hum);
 
-//    logMsg(SENSOR, "EC");
+    Serial.println("-ec");
     EC ec = getEc(waterTemp);
     json+=",\"ec\":";
     json+=ec.conductivity;
 
-//    logMsg(SENSOR, "pH");
+    Serial.println("-water temp");
     tempChar(getPh(waterTemp),opt);
     String ph = opt;
     json+=",\"ph\":";
     json+=ph;
-    
-    //    logMsg(SENSOR, "pH");
+
+    Serial.println("-ph");
     tempChar(getWaterLevel(),opt);
     String wl = opt;
     json+=",\"wl\":";
@@ -358,4 +358,5 @@ void printMem(){
   Serial.println();
 
 };
+
 

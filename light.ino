@@ -25,9 +25,12 @@ void setup_light(){
 //-------------------------------------------------------
 float getLight(){
   /* Get a new sensor event */
-  sensors_event_t event;
-  tsl.getEvent(&event);
+  Serial.println("Creating sensor event");
 
+  sensors_event_t event;
+  Serial.println("Creating sensor event");
+  tsl.getEvent(&event);
+  
   if (event.light){
     return char(event.light);
   }

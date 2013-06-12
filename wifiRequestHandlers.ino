@@ -38,7 +38,7 @@ void wifiAssocRequestHandler(){
             wifi.gets(data, sizeof(data)); 
             Serial.println(data);
           }
-          
+
 
           if (wifi.match(F("STATES="))){
             Serial.print(F("STATES="));
@@ -46,11 +46,12 @@ void wifiAssocRequestHandler(){
             Serial.println(data);
             String r = data;
             r.trim();
-            int relayState[2] = {int(r.charAt(2)-'0'), int(r.charAt(6)-'0')};
+            int relayState[2] = {
+              int(r.charAt(2)-'0'), int(r.charAt(6)-'0')            };
             for(int i=0; i<2;i++){
               if(relayState[i] != curRelayState[i]) switchRelay(i, relayState[i]);
             }
-           
+
           }
           if(wifi.match(F("CALIB_MODE="))){
             Serial.print(F("CALIB_MODE="));
@@ -60,22 +61,27 @@ void wifiAssocRequestHandler(){
             calibrate();
           }
           else calibMode = "";
-//          wifi.gets(data, sizeof(data));
-//          Serial.println(data);
+          //          wifi.gets(data, sizeof(data));
+          //          Serial.println(data);
 
-//          if(wifi.match(F("/a"))){
-//            bReceivedStatus = true;
-//            wifi.flushRx();		// discard rest of input
-//
-//            Serial.println(F("-> POST Success"));
-//          }
-//          else Serial.println(F("Error: no end byte"));
+          //          if(wifi.match(F("/a"))){
+          //            bReceivedStatus = true;
+          //            wifi.flushRx();		// discard rest of input
+          //
+          //            Serial.println(F("-> POST Success"));
+          //          }
+          //          else Serial.println(F("Error: no end byte"));
 
         }
         else Serial.println("No status message!");
       }
-      else Serial.println("No resources!");
-      
+      else {
+        Serial.println("No resources!");
+        Serial.println("-> Dumping buffer");
+        wifi.gets(buf, sizeof(buf));
+        Serial.println(buf);
+      }
+
     } 
     else if(strncmp_P(buf,PSTR("HTTP/1.1 401 Unauthorized"),23)==0 ){
       //action item for unathorized server requests?
@@ -94,13 +100,13 @@ void wifiAssocRequestHandler(){
     }
 
   }
-  
- // delay(4000); // why is this here?
+
+  // delay(4000); // why is this here?
 
   wifi.flushRx();
   bReceivedStatus = true;
- // if(wifi.isConnected()) wifi.close();
- // Serial.println("end close");
+  // if(wifi.isConnected()) wifi.close();
+  // Serial.println("end close");
 
 }
 
@@ -206,5 +212,6 @@ void apPostResponse(){
 
 
 }
+
 
 
