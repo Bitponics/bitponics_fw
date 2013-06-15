@@ -6,6 +6,12 @@ void loadServerKeys(){
   wifi.getFTPPASS(PKEY, sizeof(PKEY));
   Serial.print("Private Key: ");
   Serial.println(PKEY);
+  if(String(SKEY) == "roving"){
+       Serial.println("-> Incorrect public key, reseting");
+    wifi.setDeviceID("ApServer");
+    wifi.save();
+   resetBoard(); 
+  }
 }
 
 //********************************************************************************
@@ -121,7 +127,7 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
 
   if(_bGetData){
     Serial.println("JSON: "); 
-    Serial.println(json);
+    //Serial.println(json);
   } //print data we are going to write
   Serial.println(SKEY);
 
@@ -138,7 +144,9 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
     Serial.print("Connected to ");
     Serial.println(site);
     //// connect to server ////
+    
     wifi.println(path);
+    
     wifi.println(F("Accept: application/vnd.bitponics.v1.deviceText"));
     wifi.println(F("Content-Type: application/vnd.bitponics.v1.deviceText"));
     wifi.println(F("User-Agent: Bitponics-Device v0.1 (Arduino Mega)"));
@@ -284,17 +292,19 @@ char* makeJson(char* b, int s, boolean calib){
     json+=",\"ec\":";
     json+=ec.conductivity;
 
-    Serial.println("-water temp");
+    Serial.println("-ph");
     tempChar(getPh(waterTemp),opt);
     String ph = opt;
     json+=",\"ph\":";
     json+=ph;
 
+  if(waterLevel){
     Serial.println("-ph");
     tempChar(getWaterLevel(),opt);
     String wl = opt;
     json+=",\"wl\":";
     json+=wl;
+  }
   }
 
   json+="}}";
@@ -358,5 +368,9 @@ void printMem(){
   Serial.println();
 
 };
+
+void requestWifi(String data){
+  
+}
 
 

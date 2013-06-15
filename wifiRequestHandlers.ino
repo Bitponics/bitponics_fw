@@ -14,13 +14,11 @@ void wifiAssocRequestHandler(){
         wifi.getsTerm(data, sizeof(data),'\n'); 
         Serial.println(data);
       }
-      else Serial.println("No content type");
       if (wifi.match(F("Set-Cookie"))){ 
         Serial.print(F("Set-Cookie: "));
         wifi.getsTerm(data, sizeof(data),'\n'); 
         Serial.print(data);
       }
-      else Serial.println("No cookie");
       if (wifi.match(F("X-Bpn-Resourcename:"))){
         Serial.print(F("X-Bpn-Resourcename: ")); 
         wifi.gets(data, sizeof(data)); 
@@ -60,24 +58,12 @@ void wifiAssocRequestHandler(){
             calibMode=data;
             calibrate();
           }
-          else calibMode = "";
-          //          wifi.gets(data, sizeof(data));
-          //          Serial.println(data);
-
-          //          if(wifi.match(F("/a"))){
-          //            bReceivedStatus = true;
-          //            wifi.flushRx();		// discard rest of input
-          //
-          //            Serial.println(F("-> POST Success"));
-          //          }
-          //          else Serial.println(F("Error: no end byte"));
 
         }
-        else Serial.println("No status message!");
+        
       }
       else {
-        Serial.println("No resources!");
-        Serial.println("-> Dumping buffer");
+        Serial.println("-> No response, dumping buffer!");
         wifi.gets(buf, sizeof(buf));
         Serial.println(buf);
       }
@@ -98,10 +84,9 @@ void wifiAssocRequestHandler(){
       Serial.println(buf);
       bReceivedStatus = true;
     }
-
+    timeout = millis();
   }
 
-  // delay(4000); // why is this here?
 
   wifi.flushRx();
   bReceivedStatus = true;

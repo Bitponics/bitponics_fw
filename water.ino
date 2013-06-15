@@ -4,6 +4,7 @@ float height;
 float range = 220;
 float minVal = 190;
 float maxHeight = 21;
+//boolean waterLevel = true;
 
 
 //-----------------------------------------------------------------------------------------

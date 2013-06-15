@@ -20,7 +20,10 @@ const byte PURPLE[] = {
 #define WIFI_RESET 38
 #define BUTTON A2
 
+long timeout;
 unsigned long reset_time = 1200000; //20 minutes for reset
+unsigned long requestCount = 0;
+
 
 void setup() {
   
@@ -42,6 +45,7 @@ void setup() {
   
   setup_sensors(38400);
   wifiSetup(9600);
+  wdtSetup();
 
 }
 
@@ -81,6 +85,21 @@ void resetBoard(){
   Serial.println("-> Board timed reset");
   wdt_enable(WDTO_30MS); 
   delay(1000);
+}
+
+void wdtSetup() {
+  cli();
+  MCUSR = 0;
+  WDTCSR |= B00011000;
+  WDTCSR = B01000111;
+  sei();
+}
+
+ISR(WDT_vect){
+    Serial.println("Watchdog!");
+    if(millis()-timeout > 45000 && requestCount > 0){
+     resetBoard(); 
+    }
 }
 
 //void logMsg(int type, String msg){

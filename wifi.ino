@@ -46,7 +46,6 @@ char* Networks;
 boolean bReceivedStatus = true;
 unsigned long receiveTimeout;
 unsigned long receiveWait = 36000;
-unsigned long requestCount = 0;
 
 //********************************************************************************
 void wifiSetup(unsigned int BAUD) {
@@ -67,6 +66,7 @@ void wifiSetup(unsigned int BAUD) {
   if(ssid == "BITPONICS" || ssid == "roving1"){
     Serial.println("-> Setting AP Mode");
     wifi.setDeviceID("ApServer");
+    wifi.save();
   }
 
   Serial.print(F("WIFI Mode:   "));
@@ -89,6 +89,7 @@ void wifiSetup(unsigned int BAUD) {
 
     //if(!associateWifi()) wifiAp();
   }
+  timeout = millis();
 
 }
 
@@ -102,17 +103,23 @@ void checkBtn(){
   while(!btnState){
     btnTime = millis() - btnStartTime;
     btnState = digitalRead(BUTTON);
+
+    if(btnTime > 3000){
+      // change network name and reset
+      Serial.println("button hard reset"); 
+      Serial.println("-> Setting AP Mode");
+      wifi.setDeviceID("ApServer");
+      wifi.setSSID("Bitponics");
+      wifi.save();
+      resetBoard();
+    }
+    else if(btnTime > 1){
+      resetBoard();
+    }
   }
 
-  if(btnTime > 3000){
-    // change network name and reset
-    Serial.println("button hard reset"); 
-    Serial.println("-> Setting AP Mode");
-    wifi.setDeviceID("ApServer");
-    wifi.setSSID("Bitponics");
-    wifi.save();
-  }
-  
+
+
 
 }
 
@@ -122,9 +129,13 @@ void wifiLoop(){
   //Serial.println("in loop");
   // delay(100);
   if(WIFI_STATE == WIFI_UNSET){
+
     if (wifi.available() > 0) {
       wifiApRequestHandler();
+
     }
+
+
   }
   if (WIFI_STATE == WIFI_WPA || WIFI_STATE == WIFI_WEP){
     if (wifi.available() > 0) {  // check if anything in wifi buffer
@@ -143,5 +154,6 @@ void wifiLoop(){
 void SerialEvent(){
 
 }
+
 
 
