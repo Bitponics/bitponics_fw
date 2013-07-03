@@ -43,7 +43,7 @@ void setup() {
   Serial.println(F("**********************"));
   Serial.println(F("-> Device Boot"));
 
-  setupSensors(38400);``
+  setupSensors(38400);
   setupWifi(9600);
   setupWDT();
 
