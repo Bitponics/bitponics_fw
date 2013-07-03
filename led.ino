@@ -2,18 +2,18 @@
 #define GREEN_PIN 11
 #define RED_PIN 12
 
-void setupLedPins(){
+void setupLED(){
   pinMode(RED_PIN, OUTPUT);
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(BLUE_PIN, OUTPUT); 
+  setColor(RED);
 }
-
 
 void setColor(const byte rgb[]){
   analogWrite(RED_PIN, rgb[0]);
   analogWrite(GREEN_PIN, rgb[1]);
-  analogWrite(RED_PIN, rgb[2]);
-  //delay(2000);
+  analogWrite(BLUE_PIN, rgb[2]);
 }
+
 
 

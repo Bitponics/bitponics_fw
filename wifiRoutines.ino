@@ -7,10 +7,10 @@ void loadServerKeys(){
   Serial.print("Private Key: ");
   Serial.println(PKEY);
   if(String(SKEY) == "roving"){
-       Serial.println("-> Incorrect public key, reseting");
+    Serial.println("-> Incorrect public key, reseting");
     wifi.setDeviceID("ApServer");
     wifi.save();
-   resetBoard(); 
+    resetBoard(); 
   }
 }
 
@@ -28,6 +28,7 @@ bool associateWifi(){
 
     if (wifi.join()) {
       Serial.println("-> Joined wifi network");
+      setColor(GREEN);
     } 
     else {
       Serial.println("-> Failed to join wifi network");
@@ -56,6 +57,7 @@ void scanNetworks(){
 //********************************************************************************
 void wifiAp(){
   WIFI_STATE=WIFI_UNSET;
+
   scanNetworks();
   Serial.println(F("-> Setting up AP Mode"));
   bwifiSet = false;
@@ -88,6 +90,7 @@ void wifiAp(){
   }
 
   Serial.println(F("-> AP Ready"));
+  setColor(BLUE);
 
 }
 
@@ -122,19 +125,17 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
 
   //get temp celcius as string
   String fert = tempChar(getWaterTemp(), opt); 
-  Serial.print("String: ");
-  Serial.println(fert);
 
   if(_bGetData){
-    Serial.println("JSON: "); 
+    //Serial.println("JSON: "); 
     //Serial.println(json);
   } //print data we are going to write
-  Serial.println(SKEY);
+ // Serial.println(SKEY);
 
   //create our SHA256 Hash
   Sha256.initHmac((uint8_t*)SKEY,16); //create hash with Secret/Private Key
   Sha256.print(path);
-  if(_bGetData) Sha256.print(json);
+  if(_bGetData) Sha256.print(json); 
   Sha256.print(fert);
   hash = Sha256.resultHmac(); //must save hash to use
   printHash(hash);
@@ -144,9 +145,9 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
     Serial.print("Connected to ");
     Serial.println(site);
     //// connect to server ////
-    
+
     wifi.println(path);
-    
+
     wifi.println(F("Accept: application/vnd.bitponics.v1.deviceText"));
     wifi.println(F("Content-Type: application/vnd.bitponics.v1.deviceText"));
     wifi.println(F("User-Agent: Bitponics-Device v0.1 (Arduino Mega)"));
@@ -178,12 +179,11 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
 void wifiConnect(char *ssid, char *pass, char *mode){
   /* Setup the wifi to store wifi network & passphrase */
   Serial.println(F("Saving network"));
-  //setup_sensors(38400); ///eventually will need to set up all sensors
-  String m=mode;
+  String m = mode;
   uint8_t i;
   if(m=="WPA_MODE"){ 
-    if(wifi.setAuth(WIFLY_WLAN_AUTH_OPEN))Serial.println(F("Set WPA Auth"));
-    if(wifi.setPassphrase(pass))Serial.println(F("Set Pass"));
+    if(wifi.setAuth(WIFLY_WLAN_AUTH_OPEN)) Serial.println(F("Set WPA Auth"));
+    if(wifi.setPassphrase(pass)) Serial.println(F("Set Pass"));
     if(wifi.setDeviceID("Bitponics-WPAClient")) Serial.print(F("Set DeviceID "));
     Serial.println(wifi.getDeviceID(buf,sizeof(buf)));
     i=0;
@@ -195,7 +195,7 @@ void wifiConnect(char *ssid, char *pass, char *mode){
     i=1;
   }
 
-  if( wifi.save() )Serial.println(F("Saving..."));
+  if( wifi.save() ) Serial.println(F("Saving..."));
   Serial.print(F("old SSID  ")); 
   Serial.println(wifi.getSSID(buf,sizeof(buf)));
   if(wifi.setSSID(ssid)) Serial.print(F("Set SSID  "));
@@ -208,7 +208,7 @@ void wifiConnect(char *ssid, char *pass, char *mode){
 
   if(wifi.enableDHCP() )Serial.println(F("Enable DHCP"));
   if(wifi.save() )Serial.println(F("Saving..."));
-  ;
+
   if(wifi.reboot())Serial.println(F("Rebooted."));
 
   wifi.flushRx();
@@ -288,9 +288,9 @@ char* makeJson(char* b, int s, boolean calib){
     //Serial.print("humidity: ");Serial.println(hum);
 
     Serial.println("-ec");
-    EC ec = getEc(waterTemp);
+    int ec = getEc(waterTemp);
     json+=",\"ec\":";
-    json+=ec.conductivity;
+    json+= ec;
 
     Serial.println("-ph");
     tempChar(getPh(waterTemp),opt);
@@ -298,13 +298,13 @@ char* makeJson(char* b, int s, boolean calib){
     json+=",\"ph\":";
     json+=ph;
 
-  if(waterLevel){
-    Serial.println("-ph");
-    tempChar(getWaterLevel(),opt);
-    String wl = opt;
-    json+=",\"wl\":";
-    json+=wl;
-  }
+    if(waterLevel){
+      Serial.println("-ph");
+      tempChar(getWaterLevel(),opt);
+      String wl = opt;
+      json+=",\"wl\":";
+      json+=wl;
+    }
   }
 
   json+="}}";
@@ -370,7 +370,11 @@ void printMem(){
 };
 
 void requestWifi(String data){
-  
+  wifi.print(data);
+  Serial.print(data);
 }
+
+
+
 
 

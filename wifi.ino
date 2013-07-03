@@ -12,7 +12,7 @@
 
 #include <WiFlyHQ.h>
 #include "sha256.h"
-#include "customDataTypes.h"
+//#include "customDataTypes.h"
 
 boolean lastBtnState = true;
 
@@ -27,13 +27,15 @@ char SKEY[17]; //Private/Secret Key Stored in Wifly FTP User
 char MAC[20];
 byte WIFI_STATE;
 
-void wifiSetup(unsigned int BAUD);
+void setupWifi(unsigned int BAUD);
 void wifiApRequestHandler();
 void wifiConnect(char *ssid, char *pass, char *mode);
 boolean wifiConnection();
 void wifiLoop();
 
-char buf[80];
+int associationAttemps =0;
+
+
 char data[200];
 char opt[20];
 boolean bwifiSet;
@@ -48,7 +50,7 @@ unsigned long receiveTimeout;
 unsigned long receiveWait = 36000;
 
 //********************************************************************************
-void wifiSetup(unsigned int BAUD) {
+void setupWifi(unsigned int BAUD) {
 
 
   Serial.print(F("\nFree Memory: "));
@@ -70,21 +72,29 @@ void wifiSetup(unsigned int BAUD) {
   }
 
   Serial.print(F("WIFI Mode:   "));
-  String d= wifi.getDeviceID(buf, sizeof(buf));
+  String d = wifi.getDeviceID(buf, sizeof(buf));
   Serial.println(d);
 
-  if(d.indexOf("WiFly-GSX")>0) WIFI_STATE = WIFI_UNSET;
   if(d.indexOf("ApServer")>0) WIFI_STATE = WIFI_UNSET;
   if(d.indexOf("WPAClient")>0) WIFI_STATE = WIFI_WPA;
   if(d.indexOf("WEPClient")>0) WIFI_STATE = WIFI_WEP;
 
   wifi.setProtocol(WIFLY_PROTOCOL_TCP); // setup TCP protocol
 
-  if(WIFI_STATE == WIFI_UNSET) wifiAp(); 
+  if(WIFI_STATE == WIFI_UNSET) {
+    
+    wifiAp(); 
+  }
   else {
+    setColor(ORANGE);
     loadServerKeys();
     while(!associateWifi()){
       Serial.println("-> Association attempt failed"); 
+      associationAttemps++;
+      if (associationAttemps > 10){
+        resetWifi();
+        resetBoard(); 
+      }
     }
 
     //if(!associateWifi()) wifiAp();
@@ -118,9 +128,6 @@ void checkBtn(){
     }
   }
 
-
-
-
 }
 
 //********************************************************************************
@@ -129,13 +136,9 @@ void wifiLoop(){
   //Serial.println("in loop");
   // delay(100);
   if(WIFI_STATE == WIFI_UNSET){
-
     if (wifi.available() > 0) {
       wifiApRequestHandler();
-
     }
-
-
   }
   if (WIFI_STATE == WIFI_WPA || WIFI_STATE == WIFI_WEP){
     if (wifi.available() > 0) {  // check if anything in wifi buffer
@@ -151,9 +154,10 @@ void wifiLoop(){
   }
 }
 
-void SerialEvent(){
-
+void resetWifi(){
+  digitalWrite(WIFI_RESET, LOW);
+  delay(100);
+  digitalWrite(WIFI_RESET, HIGH);
 }
-
 
 

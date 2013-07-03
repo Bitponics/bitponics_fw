@@ -4,6 +4,7 @@
 String calibMode = "";
 
 void calibrate(){
+  setColor(YELLOW);
   //long curTime;
   // PH *****
   if(calibMode == "ph_7"){

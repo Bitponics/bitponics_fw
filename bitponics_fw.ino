@@ -15,70 +15,70 @@ const byte GREEN[] = {
   0,0,255};
 const byte PURPLE[] = {
   255,0,255};
+  
 
 #define RESET 7
 #define WIFI_RESET 38
 #define BUTTON A2
 
+char buf[80];
 long timeout;
 unsigned long reset_time = 1200000; //20 minutes for reset
 unsigned long requestCount = 0;
-
+boolean terminalMode;
 
 void setup() {
-  
+  setupLED();
+
   digitalWrite(WIFI_RESET, HIGH);
   digitalWrite(RESET, HIGH);
   pinMode(RESET, OUTPUT);
   setupRelays();
-  setupLedPins();
+  
 
   pinMode(BUTTON, INPUT);
-  //attachInterrupt(0, reset, RISING);
 
-  /* these are the required BAUDS for scan to work */
   Serial.begin(115200);
-    Serial.println();
+  Serial.println();
   Serial.println(F("**********************"));
   Serial.println(F("-> Device Boot"));
-  setColor(RED);
-  
-  setup_sensors(38400);
-  wifiSetup(9600);
-  wdtSetup();
+
+  setupSensors(38400);``
+  setupWifi(9600);
+  setupWDT();
 
 }
 
 void loop(){
 
   checkBtn();
-  
-  wifiLoop();
-  terminal();
+
+  if(!terminalMode) wifiLoop();
+
   if(millis()>reset_time) resetBoard();
 
 }
 
-void setup_sensors(unsigned int DATABAUD){
+void setupSensors(unsigned int DATABAUD){
   Serial.println("-> Initalizing sensors");
-  setup_temps();
-  setup_light();
-  setup_ec(DATABAUD);
-  setup_ph(DATABAUD);
+  setupTemps();
+  setupLight();
+  setupEc(DATABAUD);
+  setupPh(DATABAUD);
 }
 
 
-void terminal(){
-
-  while(Serial1.available() > 0) {
-    Serial.write(Serial1.read());
-  }
-
-  if(Serial.available()) {
-    Serial1.write(Serial.read());
-  }
-
-}
+//void terminal(){
+//
+//  while(Serial1.available() > 0) {
+//    Serial.write(Serial1.read());
+//  }
+//
+//  if(Serial.available()) {
+//    Serial1.write(Serial.read());
+//  }
+//
+//}
 
 void resetBoard(){
   //wdt_enable(WDTO_8S); 
@@ -87,7 +87,7 @@ void resetBoard(){
   delay(1000);
 }
 
-void wdtSetup() {
+void setupWDT() {
   cli();
   MCUSR = 0;
   WDTCSR |= B00011000;
@@ -95,11 +95,34 @@ void wdtSetup() {
   sei();
 }
 
-ISR(WDT_vect){
-    Serial.println("Watchdog!");
-    if(millis()-timeout > 45000 && requestCount > 0){
-     resetBoard(); 
+void SerialEvent(){
+  if(!terminalMode){
+    Serial.readBytesUntil('\r', buf, 5);
+    if(buf == "exit"){
+      terminalMode = false; 
     }
+    if(buf == "$$$"){
+      terminalMode = true;
+      Serial1.write("$$$"); 
+    }
+  }
+  else{
+    Serial1.write(Serial.read());
+  }
+}
+
+void SerialEvent1(){
+  if(terminalMode){ 
+    Serial.write(Serial1.read());
+  }
+
+}
+
+ISR(WDT_vect){
+  Serial.println("~~~");
+  if(millis()-timeout > 45000 && requestCount > 0){
+    resetBoard(); 
+  }
 }
 
 //void logMsg(int type, String msg){
@@ -112,3 +135,15 @@ ISR(WDT_vect){
 //  
 //  
 //}
+
+
+String tempChar(float t, char* buf){
+  char* c = dtostrf(t,5,2,buf);
+  return c;
+}
+
+
+
+
+
+

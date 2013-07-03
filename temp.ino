@@ -20,7 +20,7 @@ DeviceAddress water_temp;
 
 DHT dht(DHTPIN, DHTTYPE);
 
-void setup_temps(){
+void setupTemps(){
 
   dht.begin();
   Serial.println("- DHT");
@@ -45,31 +45,28 @@ void setup_temps(){
   } 
   else Serial.println("- Water Temp");
   
-  water.requestTemperatures();
+  //water.requestTemperatures();
   //float tempC = water.getTempC(water_temp);
   //Serial.print("Water Temp: ");Serial.println(tempC);
   
 }
-//convert temp FLoat to Char
-String tempChar(float t, char* buf){
-  char* c = dtostrf(t,5,2,buf);
-  return c;
-}
+
+
+
 //obsolete
 //char* waterTempChar(char* buf){
 //  float w = getWaterTemp();
 //  return dtostrf(w,5,2,buf);
 //  
 //}
+
 float getWaterTemp(){
- 
   water.requestTemperatures();
   return water.getTempC(water_temp); 
   
 }
 
 float getAirTemp(){
-  //error checking...
   float t = dht.readTemperature();
   if(isnan(t)) return NULL;
   else return t;

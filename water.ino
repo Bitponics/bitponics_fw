@@ -4,17 +4,16 @@ float height;
 float range = 220;
 float minVal = 190;
 float maxHeight = 21;
-//boolean waterLevel = true;
-
+boolean waterLevel = false;
 
 //-----------------------------------------------------------------------------------------
 //init ph by making sure we can communicate
-void setup_ph(unsigned int DATABAUD){
+void setupPh(unsigned int DATABAUD){
   
  Serial2.begin(DATABAUD);
  Serial2.setTimeout(6000);
- Serial2.print("L1\r");
- delay(500);
+ Serial2.print("L0\r");
+ delay(20);
  Serial2.print("L0\r");
  delay(500);
  //Serial2.print("L1\r");
@@ -26,20 +25,20 @@ void setup_ph(unsigned int DATABAUD){
 float getPh(float _c){
  //Serial.println("R\\r --> PH"); //let us know we are asking
  Serial2.print(_c);
- Serial2.write(13); //ask device
+ Serial2.write('\r'); //ask device
  delay(500);
  return Serial2.parseFloat(); //return data as float
 }
 
 //-----------------------------------------------------------------------------------------
-void setup_ec(unsigned int DATABAUD){
+void setupEc(unsigned int DATABAUD){
  
  Serial3.begin(DATABAUD);
  Serial3.setTimeout(6000);
  Serial3.print("L1\r");
- delay(500);
+ delay(100);
  Serial3.print("L0\r");
- delay(500);
+ delay(100);
  //Serial3.print("L1\r");
  // Set EC to K 0.1
  Serial3.print("P,1\r"); // set sensor type K
@@ -48,41 +47,25 @@ void setup_ec(unsigned int DATABAUD){
 }
 
 //-----------------------------------------------------------------------------------------
-EC getEc(float _c){
- EC t;
+int getEc(float _c){
  //Serial.println("R\\r --> EC"); //let us know we are asking
  Serial3.print(_c);
  Serial3.print("\r"); //ask device
  delay(500);
  
- t.conductivity= Serial3.parseInt() ;
- t.tds = Serial3.parseInt();
- t.salinity = Serial3.parseFloat();
+ int ec = Serial3.parseInt() ;
+ int garbage = Serial3.parseInt();
+ garbage = Serial3.parseFloat();
  
- return t;
+ return ec;
  
 }
-//-----------------------------------------------------------------------------------------
-void print_ec(EC &_t){
-  Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-  Serial.println("EC");
-  Serial.print("Conductivity \t");
-  Serial.println(_t.conductivity);
-  Serial.print("tds \t");
-  Serial.println(_t.tds);
-  Serial.print("salinity \t");
-  Serial.println(_t.salinity);
-  Serial.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-  
-}
-//-----------------------------------------------------------------------------------------
 
 float getWaterLevel(){
  
   int reading = analogRead(SENSORPIN);
   height = maxHeight-(reading-minVal)/range*maxHeight;
   //Serial.println(height);
-
   return height;
 }
 
