@@ -1,6 +1,6 @@
 /*-------------------------------------------*
-              ONE WIRE
-*-------------------------------------------*/
+ ONE WIRE
+ *-------------------------------------------*/
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -12,8 +12,8 @@ DallasTemperature water(&onewire);
 DeviceAddress water_temp;
 
 /*-------------------------------------------*
-            DTH-22 TEMP/HUM
-*-------------------------------------------*/
+ DTH-22 TEMP/HUM
+ *-------------------------------------------*/
 #include "DHT.h"
 #define DHTPIN 23       // pin
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
@@ -24,56 +24,44 @@ void setupTemps(){
 
   dht.begin();
   Serial.println("- DHT");
-//  float t = dht.readTemperature();
-//  if(isnan(t)) {/*reboot;*/}
-//  Serial.print("Air Temp: "); Serial.println(t);
-//  float h = dht.readHumidity();
-//  if(isnan(h)) {/*rebooot ;*/}
-//  Serial.print("Humidity: "); Serial.println(h);
-  
   water.begin();
-
-//  Serial.print("Temperature Init...");
-//  Serial.print("Found ");
-//  Serial.print(water.getDeviceCount(), HEX);
-//  Serial.println(" devices.");
-//  Serial.println(); 
-  
   if(!water.getAddress(water_temp,0)){
-   Serial.println("Failed to setup water temp sensor");
-    
+    Serial.println("Failed to setup water temp sensor");
+    resetBoard();
   } 
   else Serial.println("- Water Temp");
-  
-  //water.requestTemperatures();
-  //float tempC = water.getTempC(water_temp);
-  //Serial.print("Water Temp: ");Serial.println(tempC);
-  
+
 }
-
-
-
-//obsolete
-//char* waterTempChar(char* buf){
-//  float w = getWaterTemp();
-//  return dtostrf(w,5,2,buf);
-//  
-//}
 
 float getWaterTemp(){
   water.requestTemperatures();
   return water.getTempC(water_temp); 
-  
+
 }
 
 float getAirTemp(){
+  errors= 0;
   float t = dht.readTemperature();
-  if(isnan(t)) return NULL;
-  else return t;
+  while(isnan(t)){
+    errors++;
+    if(errors > errMax) {
+      Serial.println("temperature read error... reseting!");
+      resetBoard(); 
+    }
+  }
+  return t;
 }
 
 float getHumidity(){
   float h = dht.readHumidity();
-  if(isnan(h)) return NULL;
-  else return h;
+  while(isnan(h)){
+    errors++;
+    if(errors > errMax) {
+      Serial.println("humididty read error... reseting!");
+      resetBoard(); 
+    }
+  }
+  return h;
 }
+
+

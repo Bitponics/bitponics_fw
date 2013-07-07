@@ -27,6 +27,9 @@ unsigned long reset_time = 1200000; //20 minutes for reset
 unsigned long requestCount = 0;
 boolean terminalMode;
 
+int errors = 0;
+int errMax = 5;
+
 void setup() {
   setupLED();
 

@@ -3,10 +3,6 @@
 #define LUX_SDA 20
 #define LUX_SCL 21
 
-// via __ Adafruit Example for demonstrating the TSL2561 library - public domain!
-
-int luxErrCount = 0;
-
 Adafruit_TSL2561 tsl = Adafruit_TSL2561(TSL2561_ADDR_FLOAT, 12345);
 
 //-------------------------------------------------------
@@ -32,8 +28,11 @@ float getLight(){
   while(tempInt<=0){
     tsl.getEvent(&event);
     tempInt = event.light;
-    luxErrCount ++;
-    if(luxErrCount>5) resetBoard();
+    errors ++;
+    if(errors>5){
+      Serial.println("Lux error, reseting");
+      resetBoard();
+    }
     delay(10);
   }
   
