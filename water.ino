@@ -4,7 +4,7 @@ float height;
 float range = 220;
 float minVal = 190;
 float maxHeight = 21;
-boolean waterLevel = false;
+//boolean waterLevel = false;
 
 //-----------------------------------------------------------------------------------------
 //init ph by making sure we can communicate
@@ -53,9 +53,9 @@ int getEc(float _c){
  Serial3.print("\r"); //ask device
  delay(500);
  
- int ec = Serial3.parseInt() ;
- int garbage = Serial3.parseInt();
- garbage = Serial3.parseFloat();
+ int ec = Serial3.parseInt();
+ Serial3.parseInt();  // discard other readings
+ Serial3.parseFloat();
  
  return ec;
  
@@ -65,7 +65,6 @@ float getWaterLevel(){
  
   int reading = analogRead(SENSORPIN);
   height = maxHeight-(reading-minVal)/range*maxHeight;
-  //Serial.println(height);
   return height;
 }
 

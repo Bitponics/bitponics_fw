@@ -2,6 +2,7 @@
 //********************************************************************************
 
 void wifiAssocRequestHandler(){
+  
 
   if (wifi.gets(buf, sizeof(buf))) {
     Serial.print(F("-> POST Response: "));
@@ -9,37 +10,36 @@ void wifiAssocRequestHandler(){
     if(strncmp_P(buf, PSTR("HTTP/1.1 200 OK"), 15) == 0 || strncmp_P(buf, PSTR("TTP/1.1 200 OK"), 14) == 0 || strncmp_P(buf, PSTR("TP/1.1 200 OK"), 13) == 0){ // for some reason sometimes it reads "HT" early
       Serial.println(F("Success"));
       Serial.println(F("HTTP/1.1 200 OK")); 
-      if (wifi.match(F("Content-Type:"))){ 
-        Serial.print(F("Content-Type: "));
-        wifi.getsTerm(data, sizeof(data),'\n'); 
-        Serial.println(data);
-      }
-      if (wifi.match(F("Set-Cookie"))){ 
-        Serial.print(F("Set-Cookie: "));
-        wifi.getsTerm(data, sizeof(data),'\n'); 
-        Serial.print(data);
-      }
+//      if (wifi.match(F("Content-Type:"))){ 
+//        Serial.print(F("Content-Type: "));
+//        wifi.getsTerm(data, sizeof(data),'\n'); 
+//        Serial.println(data);
+//      }
+//      if (wifi.match(F("Set-Cookie"))){ 
+//        Serial.print(F("Set-Cookie: "));
+//        wifi.getsTerm(data, sizeof(data),'\n'); 
+//        Serial.print(data);
+//      }
       if (wifi.match(F("X-Bpn-Resourcename:"))){
         Serial.print(F("X-Bpn-Resourcename: ")); 
-        wifi.gets(data, sizeof(data)); 
+        wifi.getsTerm(data, sizeof(data),'\n'); 
         Serial.println(data);
         String _pr = data; // our page resource from the server
         _pr.trim();
-        if(_pr=="status"){
-          if (wifi.match(F("Content-Length:"))){
-            Serial.print(F("Content-Length: ")); 
-            wifi.gets(data, sizeof(data)); 
-            Serial.println(data);
-          }
-          if (wifi.match(F("Connection:"))){
-            Serial.print(F("Connection: ")); 
-            wifi.gets(data, sizeof(data)); 
-            Serial.println(data);
-          }
-
+       // if(_pr=="status"){
+//          if (wifi.match(F("Content-Length:"))){
+//            Serial.print(F("Content-Length: ")); 
+//            wifi.gets(data, sizeof(data)); 
+//            Serial.println(data);
+//          }
+//          if (wifi.match(F("Connection:"))){
+//            Serial.print(F("Connection: "));
+//            wifi.getsTerm(data, sizeof(data),'\n');
+//           // Serial.println(data);
+//          }
 
           if (wifi.match(F("STATES="))){
-            Serial.print(F("STATES="));
+            Serial.print(F("states="));
             wifi.getsTerm(data, sizeof(data),'\n');
             Serial.println(data);
             String r = data;
@@ -49,7 +49,7 @@ void wifiAssocRequestHandler(){
             for(int i=0; i<2;i++){
               if(relayState[i] != curRelayState[i]) switchRelay(i, relayState[i]);
             }
-
+          Serial.println("end states");
           }
           if(wifi.match(F("CALIB_MODE="))){
             Serial.print(F("CALIB_MODE="));
@@ -58,8 +58,10 @@ void wifiAssocRequestHandler(){
             calibMode=data;
             calibrate();
           }
-
-        }
+//          if(wifi.match(F("\b"))){
+//            Serial.println("reached end");
+//          }
+        //}
         
       }
       else {
@@ -86,7 +88,8 @@ void wifiAssocRequestHandler(){
     }
     timeout = millis();
   }
-
+  
+  Serial.println("done recieving");
 
   wifi.flushRx();
   bReceivedStatus = true;

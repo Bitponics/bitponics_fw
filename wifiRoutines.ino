@@ -1,14 +1,14 @@
 //********************************************************************************
 void loadServerKeys(){
   wifi.getFTPUSER(SKEY, sizeof(SKEY));
-  Serial.print("Public Key:  ");
+  Serial.print("Private Key:  ");
   Serial.println(SKEY);
   wifi.getFTPPASS(PKEY, sizeof(PKEY));
-  Serial.print("Private Key: ");
+  Serial.print("Public Key: ");
   Serial.println(PKEY);
   if(String(SKEY) == "roving"){
     Serial.println("-> Incorrect public key, reseting");
-    wifi.setDeviceID("ApServer");
+    wifi.setDeviceID("BITPONICS");
     wifi.save();
     resetBoard(); 
   }
@@ -37,6 +37,7 @@ bool associateWifi(){
   } 
   else {
     Serial.println(F("Device is associated."));
+    setColor(GREEN);
   }
   return true;
 }
@@ -66,7 +67,7 @@ void wifiAp(){
   //      wifi.setJoin(WIFLY_WLAN_JOIN_ADHOC);
   //      wifi.setDHCP(WIFLY_DHCP_MODE_AUTOIP);
 
-  if(wifi.createAPNetwork(mySSID, 1)){
+  if(wifi.createAPNetwork("BITPONICS", 1)){
     Serial.println(F("->AP Created"));
     Serial.print(F("MAC: "));
     Serial.println(wifi.getMAC(buf, sizeof(buf)));
@@ -130,8 +131,9 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
     //Serial.println("JSON: "); 
     //Serial.println(json);
   } //print data we are going to write
- // Serial.println(SKEY);
+  // Serial.println(SKEY);
 
+  Serial.println("-> creating hash");
   //create our SHA256 Hash
   Sha256.initHmac((uint8_t*)SKEY,16); //create hash with Secret/Private Key
   Sha256.print(path);
@@ -139,8 +141,8 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
   Sha256.print(fert);
   hash = Sha256.resultHmac(); //must save hash to use
   printHash(hash);
-  Serial.println();
 
+  Serial.println("-> opening connection");
   if (wifi.open(site, 80, RESET)) {
     Serial.print("Connected to ");
     Serial.println(site);
@@ -155,7 +157,16 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
     wifi.println(site);
     wifi.println(F("Transfer-Encoding: chunked"));
     wifi.print(F("Authorization: BPN_DEVICE "));
-    wifiAuthHeader(PKEY,hash);
+    //wifiAuthHeader(PKEY,hash);
+
+    wifi.print(PKEY);
+    wifi.print(F(":"));
+    for (int i=0; i<32; i++) {
+      wifi.print("0123456789abcdef"[hash[i]>>4]);
+      wifi.print("0123456789abcdef"[hash[i]&0xf]);
+    }
+    wifi.println();
+
     wifi.print(F("X-Bpn-Fert:"));
     wifi.println(fert);
     wifi.println(F("Cache-Control: no-cache"));
@@ -298,13 +309,13 @@ char* makeJson(char* b, int s, boolean calib){
     json+=",\"ph\":";
     json+=ph;
 
-    if(waterLevel){
-      Serial.println("-ph");
-      tempChar(getWaterLevel(),opt);
-      String wl = opt;
-      json+=",\"wl\":";
-      json+=wl;
-    }
+    //if(waterLevel){
+    Serial.println("-water level");
+    tempChar(getWaterLevel(),opt);
+    String wl = opt;
+    json+=",\"wl\":";
+    json+=wl;
+    //}
   }
 
   json+="}}";
@@ -369,10 +380,11 @@ void printMem(){
 
 };
 
-void requestWifi(String data){
+void output(String data){
   wifi.print(data);
   Serial.print(data);
 }
+
 
 
 

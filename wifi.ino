@@ -18,7 +18,7 @@ boolean lastBtnState = true;
 
 WiFly wifi;
 
-const char mySSID[] = "BITPONICS";
+//const char mySSID[] = "BITPONICS";
 const char site[] = "www.bitponics.com";
 
 //Key Chars must have one extra space for `
@@ -33,8 +33,7 @@ void wifiConnect(char *ssid, char *pass, char *mode);
 boolean wifiConnection();
 void wifiLoop();
 
-int associationAttemps =0;
-
+int associationAttemps = 0;
 
 char data[200];
 char opt[20];
@@ -67,7 +66,7 @@ void setupWifi(unsigned int BAUD) {
   Serial.println(ssid);
   if(ssid == "BITPONICS" || ssid == "roving1"){
     Serial.println("-> Setting AP Mode");
-    wifi.setDeviceID("ApServer");
+    wifi.setDeviceID("BITPONICS");
     wifi.save();
   }
 
@@ -75,7 +74,7 @@ void setupWifi(unsigned int BAUD) {
   String d = wifi.getDeviceID(buf, sizeof(buf));
   Serial.println(d);
 
-  if(d.indexOf("ApServer")>0) WIFI_STATE = WIFI_UNSET;
+  if(d.indexOf("BITPONICS")>0) WIFI_STATE = WIFI_UNSET;
   if(d.indexOf("WPAClient")>0) WIFI_STATE = WIFI_WPA;
   if(d.indexOf("WEPClient")>0) WIFI_STATE = WIFI_WEP;
 
@@ -118,8 +117,7 @@ void checkBtn(){
       // change network name and reset
       Serial.println("button hard reset"); 
       Serial.println("-> Setting AP Mode");
-      wifi.setDeviceID("ApServer");
-      wifi.setSSID("Bitponics");
+      wifi.setDeviceID("BITPONICS");
       wifi.save();
       resetBoard();
     }
@@ -159,5 +157,3 @@ void resetWifi(){
   delay(100);
   digitalWrite(WIFI_RESET, HIGH);
 }
-
-

@@ -1,6 +1,6 @@
 //global includes
 #include <Wire.h>
-#include "customDataTypes.h"
+//#include "customDataTypes.h"
 #include <avr/wdt.h>
 
 const byte RED[] = {
@@ -12,10 +12,10 @@ const byte ORANGE[] = {
 const byte BLUE[] = {
   0,0,255};
 const byte GREEN[] = {
-  0,0,255};
+  0,255,0};
 const byte PURPLE[] = {
   255,0,255};
-  
+
 
 #define RESET 7
 #define WIFI_RESET 38
@@ -25,41 +25,42 @@ char buf[80];
 long timeout;
 unsigned long reset_time = 1200000; //20 minutes for reset
 unsigned long requestCount = 0;
-boolean terminalMode;
+int terminalMode;
 
 int errors = 0;
 int errMax = 5;
+boolean setupSequence = true;
 
 void setup() {
   setupLED();
+  setupWDT();
 
   digitalWrite(WIFI_RESET, HIGH);
   digitalWrite(RESET, HIGH);
   pinMode(RESET, OUTPUT);
-  setupRelays();
-  
-
   pinMode(BUTTON, INPUT);
+
+  setupRelays();
 
   Serial.begin(115200);
   Serial.println();
   Serial.println(F("**********************"));
   Serial.println(F("-> Device Boot"));
-
-  setupSensors(38400);
-  setupWifi(9600);
-  setupWDT();
+  
 
 }
 
 void loop(){
 
+  if(setupSequence){
+    setupSensors(38400);
+    setupWifi(9600);
+    setupSequence = false;
+  }
+  
   checkBtn();
-
   if(!terminalMode) wifiLoop();
-
   if(millis()>reset_time) resetBoard();
-
 }
 
 void setupSensors(unsigned int DATABAUD){
@@ -70,7 +71,7 @@ void setupSensors(unsigned int DATABAUD){
   setupPh(DATABAUD);
 }
 
-
+//
 //void terminal(){
 //
 //  while(Serial1.available() > 0) {
@@ -85,7 +86,8 @@ void setupSensors(unsigned int DATABAUD){
 
 void resetBoard(){
   //wdt_enable(WDTO_8S); 
-  Serial.println("-> Board timed reset");
+  Serial.println("-> Board reset");
+  resetWifi();
   wdt_enable(WDTO_30MS); 
   delay(1000);
 }
@@ -98,24 +100,36 @@ void setupWDT() {
   sei();
 }
 
-void SerialEvent(){
+void serialEvent(){
+  Serial.println(".");
   if(!terminalMode){
     Serial.readBytesUntil('\r', buf, 5);
-    if(buf == "exit"){
-      terminalMode = false; 
-    }
+    //    if(buf == "exit"){
+    //      terminalMode = false; 
+    //    }
+    Serial.print("buffer: ");
+    Serial.println(buf);
     if(buf == "$$$"){
-      terminalMode = true;
+      terminalMode = 1;
+      Serial.println("attempting wifi terminal");
       Serial1.write("$$$"); 
     }
+    if(buf == "sen"){
+      terminalMode = 2;
+      Serial.write("Sensor mode"); 
+    }
+  }
+  else if(terminalMode==1){ 
+    Serial1.write(Serial.read());
   }
   else{
-    Serial1.write(Serial.read());
+    char inbyte = Serial.read();
+    Serial.println("sensor cmd");
   }
 }
 
-void SerialEvent1(){
-  if(terminalMode){ 
+void serialEvent1(){
+  if(terminalMode  == 1){
     Serial.write(Serial1.read());
   }
 
@@ -124,6 +138,7 @@ void SerialEvent1(){
 ISR(WDT_vect){
   Serial.println("~~~");
   if(millis()-timeout > 45000 && requestCount > 0){
+   
     resetBoard(); 
   }
 }
@@ -144,6 +159,7 @@ String tempChar(float t, char* buf){
   char* c = dtostrf(t,5,2,buf);
   return c;
 }
+
 
 
 
