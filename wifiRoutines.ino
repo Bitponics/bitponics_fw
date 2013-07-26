@@ -43,23 +43,23 @@ bool associateWifi(){
 }
 
 //********************************************************************************
-void scanNetworks(){
+void scannetworks(){
   Serial.println(F("-> Scan Mode"));
-  Networks = wifi.getScanNew(data, sizeof(data), true);
+  networks = wifi.getScanNew(data, sizeof(data), true);
 
   //if String networks has only [] find networks
-  while(strlen(Networks)<3){
-    Serial.println("No Networks Found, Checking Again.");
-    Networks = wifi.getScanNew(data, sizeof(data), true);
-  }
-  Serial.println(Networks);
+//  while(strlen(networks)<3){
+//    Serial.println("No networks Found, Checking Again.");
+//    networks = wifi.getScanNew(data, sizeof(data), true);
+//  }
+  Serial.println(networks);
 }
 
 //********************************************************************************
 void wifiAp(){
   WIFI_STATE=WIFI_UNSET;
 
-  scanNetworks();
+  scannetworks();
   Serial.println(F("-> Setting up AP Mode"));
   bwifiSet = false;
 

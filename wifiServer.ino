@@ -16,7 +16,7 @@ void sendInitialJSON(){
   wifi.sendChunk(F("{ \"mac\": \""));
   wifi.sendChunk(mac);
   wifi.sendChunkln(F("\", \"networks\": "));
-  wifi.sendChunkln(Networks);
+  wifi.sendChunkln(networks);
   wifi.sendChunkln(F("}"));
   wifi.sendChunkln();
 }

@@ -43,7 +43,7 @@ boolean bwifiSet;
 unsigned long time_status = 0;
 //unsigned long sensorPutDelay = 300000;
 const unsigned long statusPutDelay = 5000;
-char* Networks;
+char* networks;
 boolean bReceivedStatus = true;
 unsigned long receiveTimeout;
 unsigned long receiveWait = 36000;
