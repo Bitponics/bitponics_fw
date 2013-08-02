@@ -47,9 +47,9 @@ void wifiAssocRequestHandler(){
             int relayState[2] = {
               int(r.charAt(2)-'0'), int(r.charAt(6)-'0')            };
             for(int i=0; i<2;i++){
-              if(relayState[i] != curRelayState[i]) switchRelay(i, relayState[i]);
+              if(relayState[i] != curRelayState[i] || completedPosts == 0) switchRelay(i, relayState[i]);
             }
-          Serial.println("end states");
+          Serial.println(F("end states"));
           }
           if(wifi.match(F("CALIB_MODE="))){
             Serial.print(F("CALIB_MODE="));
@@ -62,10 +62,10 @@ void wifiAssocRequestHandler(){
 //            Serial.println("reached end");
 //          }
         //}
-        
+        completedPosts ++;
       }
       else {
-        Serial.println("-> No response, dumping buffer!");
+        Serial.println(F("-> No response, dumping buffer!"));
         wifi.gets(buf, sizeof(buf));
         Serial.println(buf);
       }
@@ -74,13 +74,13 @@ void wifiAssocRequestHandler(){
     else if(strncmp_P(buf,PSTR("HTTP/1.1 401 Unauthorized"),23)==0 ){
       //action item for unathorized server requests?
       Serial.println(F("Unauthorized"));
-      Serial.println("HTTP/1.1 401 Unauthorized");
+      Serial.println(F("HTTP/1.1 401 Unauthorized"));
       wifi.gets(buf, sizeof(buf));
       Serial.println(buf);
       bReceivedStatus = true;
     } 
     else {
-      Serial.println("Bad format");
+      Serial.println(F("Bad format"));
       Serial.println(buf);
       wifi.gets(buf, sizeof(buf));
       Serial.println(buf);
@@ -89,8 +89,6 @@ void wifiAssocRequestHandler(){
     timeout = millis();
   }
   
-  Serial.println("done recieving");
-
   wifi.flushRx();
   bReceivedStatus = true;
   // if(wifi.isConnected()) wifi.close();

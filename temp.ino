@@ -8,8 +8,8 @@
 #define TEMPERATURE_PRECISION 12
 
 OneWire onewire(ONE_WIRE_BUS);
-DallasTemperature water(&onewire);
-DeviceAddress water_temp;
+DallasTemperature waterSensor(&onewire);
+DeviceAddress waterTempAddress;
 
 /*-------------------------------------------*
  DTH-22 TEMP/HUM
@@ -24,44 +24,52 @@ void setupTemps(){
 
   dht.begin();
   Serial.println("- DHT");
-  water.begin();
-  if(!water.getAddress(water_temp,0)){
-    Serial.println("Failed to setup water temp sensor");
+  waterSensor.begin();
+  if(!waterSensor.getAddress(waterTempAddress,0)){
+    Serial.println(F("Failed to setup water temp sensor"));
     resetBoard();
   } 
-  else Serial.println("- Water Temp");
+  else Serial.println(F("- Water Temp"));
 
 }
 
-float getWaterTemp(){
-  water.requestTemperatures();
-  return water.getTempC(water_temp); 
+void getWaterTemp(){
+  waterSensor.requestTemperatures();
+  //water = waterSensor.getTempC(waterTempAddress);
+      dtostrf(waterSensor.getTempC(waterTempAddress),4,2,water);
+
+  
+//  return waterSensor.getTempC(waterTempAddress); 
 
 }
 
-float getAirTemp(){
+void getAirTemp(){
   errors= 0;
-  float t = dht.readTemperature();
-  while(isnan(t)){
-    errors++;
-    if(errors > errMax) {
-      Serial.println("temperature read error... reseting!");
-      resetBoard(); 
-    }
-  }
-  return t;
+  //air = dht.readTemperature();
+  dtostrf(dht.readTemperature(),4,2,air);
+//  while(isnan(air)){
+//    errors++;
+//    if(errors > errMax) {
+//      Serial.println(F("temperature read error... reseting!"));
+//      resetBoard(); 
+//    }
+//  }
+
 }
 
-float getHumidity(){
-  float h = dht.readHumidity();
-  while(isnan(h)){
-    errors++;
-    if(errors > errMax) {
-      Serial.println("humididty read error... reseting!");
-      resetBoard(); 
-    }
-  }
-  return h;
+void getHumidity(){
+ // float h = dht.readHumidity();
+// hum = dht.readHumidity();
+  dtostrf(dht.readHumidity(),4,2,hum);
+
+//  while(isnan(h)){
+//    errors++;
+//    if(errors > errMax) {
+//      Serial.println(F("humididty read error... reseting!"));
+//      resetBoard(); 
+//    }
+//  }
+ // return h;
 }
 
 

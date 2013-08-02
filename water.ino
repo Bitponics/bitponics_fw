@@ -12,22 +12,24 @@ void setupPh(unsigned int DATABAUD){
   
  Serial2.begin(DATABAUD);
  Serial2.setTimeout(6000);
- Serial2.print("L0\r");
+ Serial2.print(F("L0\r"));
  delay(20);
- Serial2.print("L0\r");
+ Serial2.print(F("L0\r"));
  delay(500);
  //Serial2.print("L1\r");
- Serial.println("- pH");
+ Serial.println(F("- pH"));
  
 }
 //-----------------------------------------------------------------------------------------
 //function to ask for pH and return as float
-float getPh(float _c){
+void getPh(){
  //Serial.println("R\\r --> PH"); //let us know we are asking
- Serial2.print(_c);
- Serial2.write('\r'); //ask device
+ Serial2.print(water);
+ Serial2.print(F("\r")); //ask device
  delay(500);
- return Serial2.parseFloat(); //return data as float
+ dtostrf(Serial2.parseFloat(),4,2,ph);
+// ph = Serial2.parseFloat();
+ //return Serial2.parseFloat(); //return data as float
 }
 
 //-----------------------------------------------------------------------------------------
@@ -35,37 +37,40 @@ void setupEc(unsigned int DATABAUD){
  
  Serial3.begin(DATABAUD);
  Serial3.setTimeout(6000);
- Serial3.print("L1\r");
+ Serial3.print(F("L1\r"));
  delay(100);
- Serial3.print("L0\r");
+ Serial3.print(F("L0\r"));
  delay(100);
  //Serial3.print("L1\r");
  // Set EC to K 0.1
- Serial3.print("P,1\r"); // set sensor type K
+ Serial3.print(F("P,1\r")); // set sensor type K
  Serial3.flush();
- Serial.println("- EC");
+ Serial.println(F("- EC"));
 }
 
 //-----------------------------------------------------------------------------------------
-int getEc(float _c){
+void getEc(){
  //Serial.println("R\\r --> EC"); //let us know we are asking
- Serial3.print(_c);
- Serial3.print("\r"); //ask device
+ Serial3.print(water);
+ Serial3.print(F("\r")); //ask device
  delay(500);
  
- int ec = Serial3.parseInt();
- Serial3.parseInt();  // discard other readings
- Serial3.parseFloat();
+ //ec = Serial3.parseInt();
+ itoa(Serial3.parseInt(),ec,10);
+ Serial3.flush();
+// Serial3.parseInt();  // discard other readings
+// Serial3.parseFloat();
  
- return ec;
+// return ec;
  
 }
 
-float getWaterLevel(){
+void getWaterLevel(){
  
-  int reading = analogRead(SENSORPIN);
-  height = maxHeight-(reading-minVal)/range*maxHeight;
-  return height;
+ // int reading = analogRead(SENSORPIN);
+ // wl = maxHeight-(analogRead(SENSORPIN)-minVal)/range*maxHeight;
+  dtostrf(maxHeight-(analogRead(SENSORPIN)-minVal)/range*maxHeight, 4,2,wl);
+ // return height;
 }
 
 

@@ -18,7 +18,7 @@ boolean lastBtnState = true;
 
 WiFly wifi;
 
-//const char mySSID[] = "BITPONICS";
+const char deviceId[] = "BITPONICS";
 const char site[] = "www.bitponics.com";
 
 //Key Chars must have one extra space for `
@@ -64,17 +64,18 @@ void setupWifi(unsigned int BAUD) {
   Serial.print(F("SSID:        "));
   String ssid = wifi.getSSID(buf, sizeof(buf));
   Serial.println(ssid);
-  if(ssid == "BITPONICS" || ssid == "roving1"){
-    Serial.println("-> Setting AP Mode");
-    wifi.setDeviceID("BITPONICS");
+  if(ssid == deviceId || ssid == "roving1"){
+    Serial.println(F("-> Setting AP Mode"));
+    wifi.setDeviceID(deviceId);
     wifi.save();
   }
+  macAddress(wifi.getMAC(opt, sizeof(opt)), MAC);
 
   Serial.print(F("WIFI Mode:   "));
   String d = wifi.getDeviceID(buf, sizeof(buf));
   Serial.println(d);
 
-  if(d.indexOf("BITPONICS")>0) WIFI_STATE = WIFI_UNSET;
+  if(d.indexOf(deviceId)>0) WIFI_STATE = WIFI_UNSET;
   if(d.indexOf("WPAClient")>0) WIFI_STATE = WIFI_WPA;
   if(d.indexOf("WEPClient")>0) WIFI_STATE = WIFI_WEP;
 
@@ -88,7 +89,7 @@ void setupWifi(unsigned int BAUD) {
     setColor(ORANGE);
     loadServerKeys();
     while(!associateWifi()){
-      Serial.println("-> Association attempt failed"); 
+      Serial.println(F("-> Association attempt failed")); 
       associationAttemps++;
       if (associationAttemps > 10){
         resetWifi();
@@ -115,9 +116,9 @@ void checkBtn(){
 
     if(btnTime > 3000){
       // change network name and reset
-      Serial.println("button hard reset"); 
-      Serial.println("-> Setting AP Mode");
-      wifi.setDeviceID("BITPONICS");
+      Serial.println(F("button hard reset")); 
+      Serial.println(F("-> Setting AP Mode"));
+      wifi.setDeviceID(deviceId);
       wifi.save();
       resetBoard();
     }
@@ -143,7 +144,9 @@ void wifiLoop(){
       wifiAssocRequestHandler(); // handle wifi data
     }
     else if(millis()>time_status && bReceivedStatus == true){ // if last request was completed and timer elapsed, make a request
-      Serial.println("-> Status POST");
+      if(calibMode == "") getSensors();    
+    
+      Serial.println(F("-> Status POST"));
       bReceivedStatus = false; // reset status variable
       basicAuthConnect("POST","status", true); // standard status update post
       time_status = millis() + statusPutDelay; // reset POST timer
@@ -152,8 +155,32 @@ void wifiLoop(){
   }
 }
 
+void getSensors(){
+ getLight();
+ getAirTemp();
+ getWaterTemp();
+ getHumidity();
+ getPh();
+ getEc();
+ getWaterLevel();
+}
+
 void resetWifi(){
   digitalWrite(WIFI_RESET, LOW);
-  delay(100);
+  delay(500);
   digitalWrite(WIFI_RESET, HIGH);
 }
+
+//********************************************************************************
+//********************************************************************************
+/** Return Device Mac Address without : */
+char macAddress(char *_m, char a[]){
+  int c =0;  
+  for(int i = 0; i<strlen(_m); i+=3){
+    for(int j=0; j<2;j++){
+      a[c]=_m[i+j]; //Serial.println(_m[i+j]); 
+      c++;
+    }
+  }
+}
+

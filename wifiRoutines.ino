@@ -1,13 +1,13 @@
 //********************************************************************************
 void loadServerKeys(){
   wifi.getFTPUSER(SKEY, sizeof(SKEY));
-  Serial.print("Private Key:  ");
+  Serial.print(F("Private Key:  "));
   Serial.println(SKEY);
   wifi.getFTPPASS(PKEY, sizeof(PKEY));
-  Serial.print("Public Key: ");
+  Serial.print(F("Public Key: "));
   Serial.println(PKEY);
   if(String(SKEY) == "roving"){
-    Serial.println("-> Incorrect public key, reseting");
+    Serial.println(F("-> Incorrect public key, reseting"));
     wifi.setDeviceID("BITPONICS");
     wifi.save();
     resetBoard(); 
@@ -27,11 +27,11 @@ bool associateWifi(){
     //    Serial.println(wifi.getSSID(buf, sizeof(buf)));
 
     if (wifi.join()) {
-      Serial.println("-> Joined wifi network");
+      Serial.println(F("-> Joined wifi network"));
       setColor(GREEN);
     } 
     else {
-      Serial.println("-> Failed to join wifi network");
+      Serial.println(F("-> Failed to join wifi network"));
       return false;
     }
   } 
@@ -48,10 +48,10 @@ void scannetworks(){
   networks = wifi.getScanNew(data, sizeof(data), true);
 
   //if String networks has only [] find networks
-//  while(strlen(networks)<3){
-//    Serial.println("No networks Found, Checking Again.");
-//    networks = wifi.getScanNew(data, sizeof(data), true);
-//  }
+  //  while(strlen(networks)<3){
+  //    Serial.println("No networks Found, Checking Again.");
+  //    networks = wifi.getScanNew(data, sizeof(data), true);
+  //  }
   Serial.println(networks);
 }
 
@@ -103,62 +103,124 @@ void wifiAp(){
  * _bGetData - if we are sending JSON sensor data or not
  * 
  */
-boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
+
+// TODO: come up with naming convention for global variables
+// TODO: use Hungarian Notation
+boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){ // TODO: Rename function
   requestCount++;
   Serial.println();
-  Serial.print("Request count: ");
+  Serial.print(F("Request count: "));
   Serial.println(requestCount);
   Serial.println();
   uint8_t* hash;
   uint32_t a;
-  char *mac = wifi.getMAC(opt, sizeof(opt));
-  macAddress(mac, MAC);
+
   char* json;
 
   //if(_bGetData)
 
-  if(calibMode== "") json = makeJson(data, sizeof(data), false ); //this is where we will make all of our data
-  else json = makeJson(data, sizeof(data), true );
+  //if(calibMode== "") json = makeJson(data, sizeof(data), false ); 
+  // else json = makeJson(data, sizeof(data), true );
 
-  sprintf(buf,"%s /api/devices/%s/%s HTTP/1.1",_type,MAC,_route);  //format header route
-  String path = buf; 
-  Serial.println(path); 
+  char path[48];
+  sprintf(path,"POST /api/devices/%s/status HTTP/1.1",MAC);  //format header route
+  // String path = buf; 
+  // Serial.println(path); 
 
   //get temp celcius as string
-  String fert = tempChar(getWaterTemp(), opt); 
+  //char fert = tempChar(getWaterTemp(), opt); 
 
-  if(_bGetData){
-    //Serial.println("JSON: "); 
-    //Serial.println(json);
-  } //print data we are going to write
-  // Serial.println(SKEY);
+  //  if(_bGetData){
+  //    //Serial.println("JSON: "); 
+  //    //Serial.println(json);
+  //  } //print data we are going to write
+  //  // Serial.println(SKEY);
 
-  Serial.println("-> creating hash");
+  Serial.println(F("-> creating hash"));
   //create our SHA256 Hash
   Sha256.initHmac((uint8_t*)SKEY,16); //create hash with Secret/Private Key
   Sha256.print(path);
-  if(_bGetData) Sha256.print(json); 
-  Sha256.print(fert);
+  Serial.print(path);
+  if(_bGetData){
+    Sha256.print(lux);
+    Sha256.print(F(","));
+    Sha256.print(air);
+    Sha256.print(F(","));
+    Sha256.print(water);
+    Sha256.print(F(","));
+    Sha256.print(hum);
+    Sha256.print(F(","));
+    Sha256.print(ph);
+    Sha256.print(F(","));
+    Sha256.print(ec);
+    Sha256.print(F(","));
+    Sha256.print(wl);
+  }
+  Sha256.print(water);
+  Serial.println(water);
   hash = Sha256.resultHmac(); //must save hash to use
-  printHash(hash);
+  //printHash(hash);
 
-  Serial.println("-> opening connection");
+  Serial.println(F("-> opening connection"));
   if (wifi.open(site, 80, RESET)) {
-    Serial.print("Connected to ");
+    Serial.print(F("Connected to "));
     Serial.println(site);
+
+    Serial.println(F("----REQUEST----"));
     //// connect to server ////
+    Serial.println(path);
+    Serial.println(F("Host: www.bitponics.com"));
+    Serial.println(F("User-Agent: Bitponics-Device v1 (Arduino Mega)"));
+    Serial.println(F("Accept: application/vnd.bitponics.v1.deviceText"));
+    Serial.println(F("Transfer-Encoding: chunked"));
+
+    Serial.print(F("Authorization: BPN_DEVICE "));
+    Serial.print(PKEY);
+    Serial.print(F(":"));
+    for (int i=0; i<32; i++) {
+      Serial.print("0123456789abcdef"[hash[i]>>4]);
+      Serial.print("0123456789abcdef"[hash[i]&0xf]);
+    }
+    Serial.println();
+    for (int i=0; i<32; i++) {
+      Serial.print("0123456789abcdef"[hash[i]>>4]);
+      Serial.print("0123456789abcdef"[hash[i]&0xf]);
+    }
+    Serial.println();
+    Serial.print(F("X-Bpn-Fert: "));
+    Serial.println(water);
+    Serial.println(F("Content-Type: application/vnd.bitponics.v2.deviceText"));
+    Serial.println(F("Cache-Control: no-cache"));
+    Serial.println(F("Connection: close"));
+    Serial.println();
+
+    if(_bGetData){
+      Serial.print(lux);
+      Serial.print(F(","));
+      Serial.print(air);
+      Serial.print(F(","));
+      Serial.print(water);
+      Serial.print(F(","));
+      Serial.print(hum);
+      Serial.print(F(","));
+      Serial.print(ph);
+      Serial.print(F(","));
+      Serial.print(ec);
+      Serial.print(F(","));
+      Serial.print(wl);
+    }
+
+    Serial.println(); 
+
+    ///  ///
 
     wifi.println(path);
-
+    wifi.println(F("Host: www.bitponics.com"));
+    wifi.println(F("User-Agent: Bitponics-Device v1 (Arduino Mega)"));
     wifi.println(F("Accept: application/vnd.bitponics.v1.deviceText"));
-    wifi.println(F("Content-Type: application/vnd.bitponics.v1.deviceText"));
-    wifi.println(F("User-Agent: Bitponics-Device v0.1 (Arduino Mega)"));
-    wifi.print(F("Host: "));
-    wifi.println(site);
     wifi.println(F("Transfer-Encoding: chunked"));
-    wifi.print(F("Authorization: BPN_DEVICE "));
-    //wifiAuthHeader(PKEY,hash);
 
+    wifi.print(F("Authorization: BPN_DEVICE "));
     wifi.print(PKEY);
     wifi.print(F(":"));
     for (int i=0; i<32; i++) {
@@ -167,20 +229,37 @@ boolean basicAuthConnect(char* _type, char* _route, boolean _bGetData){
     }
     wifi.println();
 
-    wifi.print(F("X-Bpn-Fert:"));
-    wifi.println(fert);
+    wifi.print(F("X-Bpn-Fert: "));
+    wifi.println(water);
+    wifi.println(F("Content-Type: application/vnd.bitponics.v2.deviceText"));
     wifi.println(F("Cache-Control: no-cache"));
     wifi.println(F("Connection: close"));
     wifi.println();
-    //// end header ////
-    if(_bGetData) wifi.sendChunk(json);
+
+    if(_bGetData){
+      wifi.sendChunk(lux);
+      wifi.sendChunk(F(","));
+      wifi.sendChunk(air);
+      wifi.sendChunk(F(","));
+      wifi.sendChunk(water);
+      wifi.sendChunk(F(","));
+      wifi.sendChunk(hum);
+      wifi.sendChunk(F(","));
+      wifi.sendChunk(ph);
+      wifi.sendChunk(F(","));
+      wifi.sendChunk(ec);
+      wifi.sendChunk(F(","));
+      wifi.sendChunk(wl);
+    }
+
     wifi.sendChunkln(); 
+
     //// end body ////
     receiveTimeout = millis() + receiveWait;
     return true;
   }
   else{
-    Serial.println("Failed to connect");
+    Serial.println(F("Failed to connect"));
     bReceivedStatus = true;
     return false;
   }
@@ -235,16 +314,14 @@ void wifiConnect(char *ssid, char *pass, char *mode){
     if(m=="WPA_MODE") WIFI_STATE = WIFI_WPA;
     else WIFI_STATE = WIFI_WEP;
 
-    Serial.print("MAC: ");
-    Serial.println(wifi.getMAC(buf, sizeof(buf)));
-    Serial.print("IP: ");
+    Serial.print(F("IP: "));
     Serial.println(wifi.getIP(buf, sizeof(buf)));
-    Serial.print("Netmask: ");
+    Serial.print(F("Netmask: "));
     Serial.println(wifi.getNetmask(buf, sizeof(buf)));
-    Serial.print("Gateway: ");
+    Serial.print(F("Gateway: "));
     Serial.println(wifi.getGateway(buf, sizeof(buf)));
     //device id test
-    Serial.print("DeviceID: ");
+    Serial.print(F("DeviceID: "));
     Serial.println(wifi.getDeviceID(buf, sizeof(buf)));
 
     basicAuthConnect("POST","status", true);
@@ -259,85 +336,73 @@ void wifiConnect(char *ssid, char *pass, char *mode){
 }
 //********************************************************************************
 //********************************************************************************
-char* makeJson(char* b, int s, boolean calib){
-  // will take variables in addition to a buffer and create a data string for the server.
-  String json;
+//char* makeJson(char* b, int s, boolean calib){
+//  // will take variables in addition to a buffer and create a data string for the server.
+//  String json;
+//
+//  if(calib){
+//    json += "{\"calib\":{\"mode\":\"";
+//    json += calibMode;
+//    json += "\",\"status\":\"success\"";
+//  }
+//  else{
+//    Serial.println(F("Taking Readings and Making JSON"));
+//    Serial.println();
+//
+//    Serial.println("-lux");
+//    json += "{\"sensors\":{\"lux\":"; // TODO: check if string can be prestored in prgm mem
+//    json += tempChar(getLight(),opt);
+//
+//    Serial.println("-air temp");
+//    json += ",\"air\":";
+//    tempChar(getAirTemp(), opt);
+//    String air = opt;
+//    json+=air;
+//    //Serial.print("air temp: ");Serial.println(air);
+//
+//    Serial.println("-water temp");
+//    json+= ",\"water\":";
+//    float waterTemp = getWaterTemp();
+//    tempChar(waterTemp,opt);
+//    String water = opt;
+//    json+=water;
+//    //Serial.print("water temp: ");Serial.println(water);
+//
+//    Serial.println("-humidity");
+//    json+=",\"hum\":";
+//    tempChar(getHumidity(),opt);
+//    String hum = opt;
+//    json+=hum;
+//    //Serial.print("humidity: ");Serial.println(hum);
+//
+//    Serial.println("-ec");
+//    int ec = getEc(waterTemp);
+//    json+=",\"ec\":";
+//    json+= ec;
+//
+//    Serial.println("-ph");
+//    tempChar(getPh(waterTemp),opt);
+//    String ph = opt;
+//    json+=",\"ph\":";
+//    json+=ph;
+//
+//    //if(waterLevel){
+//    Serial.println("-water level");
+//    tempChar(getWaterLevel(),opt);
+//    String wl = opt;
+//    json+=",\"wl\":";
+//    json+=wl;
+//    //}
+//  }
+//
+//  json+="}}";
+//  //Serial.println(json);
+//  json.toCharArray(b, s);
+//
+//  return b;
+//
+//}
 
-  if(calib){
-    json += "{\"calib\":{\"mode\":\"";
-    json += calibMode;
-    json += "\",\"status\":\"success\"";
-  }
-  else{
-    Serial.println("Taking Readings and Making JSON");
-    Serial.println();
-
-    Serial.println("-lux");
-    json += "{\"sensors\":{\"lux\":";
-    json += tempChar(getLight(),opt);
-
-    Serial.println("-air temp");
-    json += ",\"air\":";
-    tempChar(getAirTemp(), opt);
-    String air = opt;
-    json+=air;
-    //Serial.print("air temp: ");Serial.println(air);
-
-    Serial.println("-water temp");
-    json+= ",\"water\":";
-    float waterTemp = getWaterTemp();
-    tempChar(waterTemp,opt);
-    String water = opt;
-    json+=water;
-    //Serial.print("water temp: ");Serial.println(water);
-
-    Serial.println("-humidity");
-    json+=",\"hum\":";
-    tempChar(getHumidity(),opt);
-    String hum = opt;
-    json+=hum;
-    //Serial.print("humidity: ");Serial.println(hum);
-
-    Serial.println("-ec");
-    int ec = getEc(waterTemp);
-    json+=",\"ec\":";
-    json+= ec;
-
-    Serial.println("-ph");
-    tempChar(getPh(waterTemp),opt);
-    String ph = opt;
-    json+=",\"ph\":";
-    json+=ph;
-
-    //if(waterLevel){
-    Serial.println("-water level");
-    tempChar(getWaterLevel(),opt);
-    String wl = opt;
-    json+=",\"wl\":";
-    json+=wl;
-    //}
-  }
-
-  json+="}}";
-  //Serial.println(json);
-  json.toCharArray(b, s);
-
-  return b;
-
-}
-
-//********************************************************************************
-//********************************************************************************
-/** Return Device Mac Address without : */
-char macAddress(char *_m, char a[]){
-  int c =0;  
-  for(int i = 0; i<strlen(_m); i+=3){
-    for(int j=0; j<2;j++){
-      a[c]=_m[i+j]; //Serial.println(_m[i+j]); 
-      c++;
-    }
-  }
-}
 
 //********************************************************************************
 //********************************************************************************
@@ -380,9 +445,9 @@ void printMem(){
 
 };
 
-void output(String data){
-  wifi.print(data);
-  Serial.print(data);
+void comma(){
+  Serial.print(F(","));
+  wifi.print(F(",")); 
 }
 
 

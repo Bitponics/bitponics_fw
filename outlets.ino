@@ -14,9 +14,9 @@ void switchRelay(int relay, int state){
   digitalWrite(relayPin[relay*2+state],HIGH);
   delay(20);
   digitalWrite(relayPin[relay*2+state],LOW);
-  Serial.print("relay: ");
+  Serial.print(F("relay: "));
   Serial.print(relay);
-  Serial.print("-");
+  Serial.print(F("-"));
   Serial.println(state);
   curRelayState[relay] = state;
 
